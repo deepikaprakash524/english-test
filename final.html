@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENGLISH LEVEL TEST 📝</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+
+<!-- LOGIN PAGE -->
+<section id="loginPage" class="min-h-screen flex flex-col items-center justify-center text-center px-6">
+    <h1 class="text-5xl font-extrabold text-indigo-400 drop-shadow mb-6">WELCOME 👨🏻‍💻</h1>
+
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-xl max-w-md w-full">
+        <h2 class="text-3xl font-bold mb-6">Login</h2>
+
+        <input id="username" type="text" placeholder="Username"
+            class="w-full p-3 mb-4 rounded-lg bg-gray-700 focus:outline-none" />
+
+        <input id="password" type="password" placeholder="Password"
+            class="w-full p-3 mb-6 rounded-lg bg-gray-700 focus:outline-none" />
+
+        <button onclick="login()" 
+            class="w-full bg-indigo-600 py-3 rounded-lg text-lg font-semibold hover:bg-indigo-700">
+            Login
+        </button>
+
+        <p id="loginError" class="text-red-400 mt-4 hidden">Invalid username or password!</p>
+    </div>
+</section>
+
+<!-- HOME PAGE -->
+<section id="home" class="hidden min-h-screen flex flex-col items-center justify-center text-center px-6">
+    <h1 class="text-5xl font-extrabold text-indigo-400 drop-shadow mb-6">Test Your English Level 🕵️</h1>
+    <p class="max-w-xl text-gray-300 mb-8 leading-relaxed">
+        Improve your English skills by taking this smart online test.  
+        At the end, get your level and download your certificate instantly.
+    </p>
+    <button onclick="startTest()" class="bg-indigo-600 hover:bg-indigo-700 px-8 py-3 rounded-xl text-lg font-semibold shadow-xl">
+        Start the Test
+    </button>
+</section>
+
+<!-- TEST PAGE -->
+<section id="testPage" class="hidden max-w-xl mx-auto p-6">
+    <h2 class="text-3xl font-bold mb-4 text-indigo-400">English Test ✍🏻</h2>
+
+    <div class="flex justify-between mb-2">
+        <p class="text-gray-300">Time Left: <span id="timer" class="text-red-400 font-bold">600</span>s</p>
+        <p class="text-gray-300">Progress: <span id="progress">1</span>/30</p>
+    </div>
+
+    <div class="w-full bg-gray-700 rounded-full h-3 mb-6">
+        <div id="progressBar" class="bg-indigo-500 h-3 rounded-full" style="width: 3.33%;"></div>
+    </div>
+
+    <h3 id="question" class="text-2xl mb-6 font-semibold"></h3>
+
+    <div id="options" class="space-y-3"></div>
+</section>
+
+<!-- RESULT PAGE -->
+<section id="resultPage" class="hidden min-h-screen flex flex-col items-center justify-center text-center px-6">
+    <h2 class="text-4xl font-bold text-indigo-400 mb-4">🎊 Your Result 🎊</h2>
+
+    <p class="text-lg text-gray-300 mb-2">Your Score: <span id="scoreText"></span>/30</p>
+    <p class="text-lg text-gray-300 mb-2">Your English Level:</p>
+    <p id="levelText" class="text-5xl font-extrabold mb-6"></p>
+
+    <!-- IMPROVEMENT SECTION -->
+    <h3 class="text-2xl font-bold text-indigo-300 mb-2">What You Should Improve 👇</h3>
+    <p id="improveText" class="text-gray-300 max-w-xl mb-6 leading-relaxed text-lg"></p>
+
+    <button onclick="downloadCertificate()" class="bg-green-600 px-8 py-3 rounded-xl text-lg font-semibold hover:bg-green-700 shadow-lg">
+        Download Certificate
+    </button>
+
+    <button onclick="restart()" class="mt-4 bg-gray-800 px-8 py-3 rounded-xl hover:bg-gray-700">
+        Restart Test
+    </button>
+</section>
+
+<!-- COLORFUL CERTIFICATE CANVAS -->
+<canvas id="certCanvas" width="1100" height="800" class="hidden"></canvas>
+
+<script>
+let index = 0, score = 0, timeLeft = 600, timer;
+let loginName = "";
+
+// ---------------- LOGIN FUNCTION --------------------
+function login(){
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
+
+    if(user === "" || pass === ""){
+        document.getElementById("loginError").innerText = "Please enter both username and password!";
+        document.getElementById("loginError").classList.remove("hidden");
+        return;
+    }
+
+    loginName = user;
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("home").classList.remove("hidden");
+}
+
+// ---------------- QUESTION BANK ---------------------
+const questions = [
+    { q:"Choose the correct spelling:", o:["Recieve","Receive","Receeve","Reccive"], a:1 },
+    { q:"He ____ to school daily.", o:["go","goes","going","gone"], a:1 },
+    { q:"Opposite of 'Brave'?", o:["Coward","Strong","Smart","Fearless"], a:0 },
+    { q:"I am better ____ him.", o:["than","then","to","for"], a:0 },
+    { q:"Correct sentence:", o:["She don't like tea","She doesn't like tea","She didn't likes","She not like"], a:1 },
+    { q:"Plural of 'Mouse'?", o:["Mouses","Mousees","Mice","Meese"], a:2 },
+    { q:"Fill: This is the boy ____ won.", o:["who","which","whose","whom"], a:0 },
+    { q:"Choose adjective:", o:["Quickly","Quick","Quicker","Quickest"], a:1 },
+    { q:"Synonym of 'Brilliant':", o:["Dull","Smart","Lazy","Weak"], a:1 },
+    { q:"He is ___ honest man.", o:["a","an","the","no article"], a:1 },
+    { q:"Choose the correct article: '___ apple a day keeps the doctor away.'", o:["A","An","The","No article"], a:1 },
+    { q:"Past tense of 'Go'?", o:["Went","Go","Gone","Goed"], a:0 },
+    { q:"Antonym of 'Happy'?", o:["Sad","Angry","Excited","Fearful"], a:0 },
+    { q:"Which is a verb?", o:["Beautiful","Run","Quick","Strong"], a:1 },
+    { q:"Synonym of 'Quick'?", o:["Slow","Rapid","Late","Weak"], a:1 },
+    { q:"Plural of 'Child'?", o:["Childs","Children","Childer","Childes"], a:1 },
+    { q:"Correct sentence:", o:["I has a pen","I have a pen","I having a pen","I had a pen"], a:1 },
+    { q:"Choose the right word: He is ___ than his brother.", o:["tall","taller","tallest","most tall"], a:1 },
+    { q:"Opposite of 'Difficult'?", o:["Hard","Easy","Simple","Tough"], a:1 },
+    { q:"Fill in: She is fond ___ music.", o:["in","of","on","with"], a:1 },
+    { q:"Synonym of 'Big'?", o:["Large","Small","Tiny","Short"], a:0 },
+    { q:"Past participle of 'Eat'?", o:["Eated","Eaten","Eating","Ate"], a:1 },
+    { q:"Choose correct: 'I ___ my homework yesterday.'", o:["did","do","does","doing"], a:0 },
+    { q:"Plural of 'Foot'?", o:["Feet","Foots","Foote","Feets"], a:0 },
+    { q:"Opposite of 'Fast'?", o:["Slow","Quick","Rapid","Speedy"], a:0 },
+    { q:"Choose correct spelling:", o:["Accomodate","Acommodate","Accommodate","Acommadate"], a:2 },
+    { q:"Synonym of 'Smart'?", o:["Intelligent","Dull","Lazy","Weak"], a:0 },
+    { q:"Correct sentence:", o:["They is happy","They are happy","They am happy","They be happy"], a:1 },
+    { q:"Fill: This is the pen ___ I bought.", o:["who","which","whose","whom"], a:1 },
+    { q:"Choose adjective:", o:["Beautifully","Beautiful","Most Beautiful","Beautifullest"], a:1 }
+];
+
+function startTest(){
+    document.getElementById("home").classList.add("hidden");
+    document.getElementById("testPage").classList.remove("hidden");
+    loadQuestion();
+
+    timer = setInterval(()=>{
+        timeLeft--;
+        document.getElementById("timer").innerText = timeLeft;
+        if(timeLeft <= 0) finishTest();
+    },1000);
+}
+
+function loadQuestion(){
+    const q = questions[index];
+    document.getElementById("question").innerText = q.q;
+    document.getElementById("progress").innerText = index+1;
+    document.getElementById("progressBar").style.width = ((index+1)/questions.length)*100+"%";
+
+    const options = document.getElementById("options");
+    options.innerHTML = "";
+
+    q.o.forEach((opt,i)=>{
+        options.innerHTML += `
+        <button onclick="selectAnswer(${i})"
+            class="w-full bg-gray-800 p-3 rounded-xl hover:bg-gray-700 transition">
+            ${opt}
+        </button>
+        `;
+    });
+}
+
+function selectAnswer(i){
+    if(i === questions[index].a) score++;
+    index++;
+
+    if(index < questions.length) loadQuestion();
+    else finishTest();
+}
+
+function finishTest(){
+    clearInterval(timer);
+
+    document.getElementById("testPage").classList.add("hidden");
+    document.getElementById("resultPage").classList.remove("hidden");
+
+    document.getElementById("scoreText").innerText = score;
+
+    let level="", improve="";
+    if(score <= 10){
+        level="Beginner 🥉";
+        improve="Practice simple sentences daily in speaking and writing.Learn 5-10 new vocobulary words every day.Read short English stories to improve grammer.Watch English videos to improve listening and pronounciation.";
+    } else if(score <= 20){
+        level="Intermediate 🥈";
+        improve="Read English articles, short stories, or news daily. Practice writing short paragraphs and check grammar. Listen to English podcasts or movies with subtitles. Speak clearly and confidently to improve fluency.";
+    } else if(score <= 25){
+        level="Advanced 🥇";
+        improve="Read novels, editorials, and long articles to build vocabulary. Practice writing essays and formal content.Speak fluently and use idioms or expressions naturally.Listen to English debates, podcasts, and advanced materials.";
+    } else {
+        level="Expert 🏅";
+        improve="Focus on polishing accent and professional writing skills. Engage in debates, presentations, and discussions. Read research papers, advanced books, and articles. Practice writing essays, reports, and formal content regularly.";
+    }
+
+    document.getElementById("levelText").innerText = level;
+    document.getElementById("improveText").innerText = improve;
+}
+
+// ---------------- COLORFUL CERTIFICATE --------------------
+function downloadCertificate(){
+    const c = document.getElementById("certCanvas");
+    const ctx = c.getContext("2d");
+
+    // Background gradient
+    const grad = ctx.createLinearGradient(0,0,1100,800);
+    grad.addColorStop(0,"#6EE7B7");
+    grad.addColorStop(1,"#3B82F6");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,1100,800);
+
+    // Border
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 10;
+    ctx.strokeRect(30,30,1040,740);
+
+    // Title
+    ctx.fillStyle = "white";
+    ctx.font = "60px serif";
+    ctx.fillText("Certificate of English Excellence", 180,150);
+
+    // Name
+    ctx.font = "50px serif";
+    ctx.fillText("Awarded to:", 200,270);
+
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "70px serif";
+    ctx.fillText(loginName, 400,350);
+
+    // Score & level
+    ctx.fillStyle = "white";
+    ctx.font = "40px serif";
+    ctx.fillText("Score: " + score + " / 30", 350,450);
+    ctx.fillText("Level: " + document.getElementById("levelText").innerText, 350,520);
+
+    // Signature Area
+    ctx.font = "30px serif";
+    ctx.fillText("Phoenix Academy", 420,650);
+
+    // Download
+    const link = document.createElement("a");
+    link.download = "English_Certificate.png";
+    link.href = c.toDataURL();
+    link.click();
+}
+
+function restart(){
+    location.reload();
+}
+</script>
+
+</body>
+</html>
